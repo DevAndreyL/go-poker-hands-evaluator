@@ -1,15 +1,21 @@
 package holdem
 
 type EvaluateResult struct {
-	//TODO
+	Result map[string]*HandResult `json:"result"`
 }
 
 func EvaluateAndCompareHands(hands Hands) (*EvaluateResult, error) {
 	handsWithCards := createCardsForHands(hands)
+
+	handCombinations := map[string]*HandResult{}
+
 	for _, hand := range handsWithCards {
-		hand.DefineCombination()
+		handCombinations[hand.Name] = hand.DefineCombination()
 	}
-	return &EvaluateResult{}, nil
+
+	return &EvaluateResult{
+		Result: handCombinations,
+	}, nil
 }
 
 func createCardsForHands(hands Hands) []Hand {

@@ -4,13 +4,26 @@ import (
 	"sort"
 )
 
+const (
+	royalFlushCombinationWeight    = 10
+	straightFlushCombinationWeight = 9
+	fourOfAKindCombinationWeight   = 8
+	fullHouseCombinationWeight     = 7
+	flushCombinationWeight         = 6
+	straightCombinationWeight      = 5
+	threeOfAKindCombinationWeight  = 4
+	twoPairCombinationWeight       = 3
+	pairCombinationWeight          = 2
+	highCardCombinationWeight      = 1
+)
+
 type Hands map[string][]string
 
 type HandResult struct {
-	HandName          string
-	CombinationName   string
-	HandWeight        int32
-	CombinationWeight int32
+	HandName          string `json:"handName"`
+	CombinationName   string `json:"combinationName"`
+	HandWeight        int32  `json:"handWeight"`
+	CombinationWeight int32  `json:"combinationWeight"`
 }
 
 type Hand struct {
@@ -18,8 +31,44 @@ type Hand struct {
 	Cards []Card
 }
 
-func (h *Hand) DefineCombination() {
-	//TODO Put it all together
+func (h *Hand) DefineCombination() *HandResult {
+	if royalFlushResult := h.isRoyalFlush(); royalFlushResult != nil {
+		return royalFlushResult
+	}
+
+	if straightFlushResult := h.isStraightFlush(); straightFlushResult != nil {
+		return straightFlushResult
+	}
+
+	if fourOfAKindResult := h.isFourOfAKind(); fourOfAKindResult != nil {
+		return fourOfAKindResult
+	}
+
+	if fullHouseResult := h.isFullHouse(); fullHouseResult != nil {
+		return fullHouseResult
+	}
+
+	if flushResult := h.isFlush(); flushResult != nil {
+		return flushResult
+	}
+
+	if straightResult := h.isStraight(); straightResult != nil {
+		return straightResult
+	}
+
+	if threeOfAKindResult := h.isThreeOfAKind(); threeOfAKindResult != nil {
+		return threeOfAKindResult
+	}
+
+	if twoPairResult := h.isTwoPair(); twoPairResult != nil {
+		return twoPairResult
+	}
+
+	if pairResult := h.isPair(); pairResult != nil {
+		return pairResult
+	}
+
+	return h.isHighCard()
 }
 
 func (h *Hand) calculateHandWeight() CardWeight {
@@ -31,46 +80,41 @@ func (h *Hand) calculateHandWeight() CardWeight {
 }
 
 func (h *Hand) isRoyalFlush() *HandResult {
-	allCardsSame := true
-	royalFlushCombination := []CardName{"T", "J", "Q", "K", "A"}
 	firstSuit := h.Cards[0].Suit
-	var actualCombination []CardName
+	allCardsSame := true
 	for _, card := range h.Cards {
 		if card.Suit != firstSuit {
 			allCardsSame = false
 			break
 		}
-		actualCombination = append(actualCombination, card.Name)
 	}
 
-	for i := range royalFlushCombination {
-		if actualCombination[i] != royalFlushCombination[i] {
-			allCardsSame = false
+	if !allCardsSame {
+		return nil
+	}
+
+	royalFlushCombination := []CardName{"T", "J", "Q", "K", "A"}
+	for i, cardName := range royalFlushCombination {
+		if i >= len(h.Cards) || h.Cards[i].Name != cardName {
+			return nil
 		}
 	}
 
-	if allCardsSame == true {
-		return &HandResult{
-			HandName:          h.Name,
-			CombinationName:   "Royal Flush",
-			HandWeight:        int32(h.calculateHandWeight()),
-			CombinationWeight: 10,
-		}
+	return &HandResult{
+		HandName:          h.Name,
+		CombinationName:   "Royal Flush",
+		HandWeight:        int32(h.calculateHandWeight()),
+		CombinationWeight: royalFlushCombinationWeight,
 	}
-
-	return nil
 }
 
 func (h *Hand) isStraightFlush() *HandResult {
-	// Create a map to store the count of each suit in the hand
 	suitCount := make(map[CardSuit]int)
 
-	// Count the occurrence of each suit in the hand
 	for _, card := range h.Cards {
 		suitCount[card.Suit]++
 	}
 
-	// Find the suit that occurs at least five times (to determine the potential suit for Straight Flush)
 	var potentialSuit CardSuit
 	for suit, count := range suitCount {
 		if count >= 5 {
@@ -83,7 +127,6 @@ func (h *Hand) isStraightFlush() *HandResult {
 		return nil // No suit occurs at least five times, no Straight Flush possible
 	}
 
-	// Filter cards of the potential suit, and sort them by weight
 	potentialSuitCards := make([]Card, 0, 7)
 	for _, card := range h.Cards {
 		if card.Suit == potentialSuit {
@@ -104,7 +147,7 @@ func (h *Hand) isStraightFlush() *HandResult {
 					HandName:          h.Name,
 					CombinationName:   "Straight Flush",
 					HandWeight:        int32(h.calculateHandWeight()),
-					CombinationWeight: 9,
+					CombinationWeight: straightFlushCombinationWeight,
 				}
 			}
 		} else {
@@ -137,7 +180,7 @@ func (h *Hand) isFullHouse() *HandResult {
 			HandName:          h.Name,
 			CombinationName:   "Full House",
 			HandWeight:        int32(h.calculateHandWeight()),
-			CombinationWeight: 7,
+			CombinationWeight: fullHouseCombinationWeight,
 		}
 	}
 
@@ -155,7 +198,7 @@ func (h *Hand) isFourOfAKind() *HandResult {
 				HandName:          h.Name,
 				CombinationName:   "Four of a kind",
 				HandWeight:        int32(h.calculateHandWeight()),
-				CombinationWeight: 8,
+				CombinationWeight: fourOfAKindCombinationWeight,
 			}
 		}
 	}
@@ -189,7 +232,7 @@ func (h *Hand) isFlush() *HandResult {
 				HandName:          h.Name,
 				CombinationName:   "Flush",
 				HandWeight:        int32(h.calculateHandWeight()),
-				CombinationWeight: 6,
+				CombinationWeight: flushCombinationWeight,
 			}
 		}
 	}
@@ -221,7 +264,7 @@ func (h *Hand) isStraight() *HandResult {
 					HandName:          h.Name,
 					CombinationName:   "Straight",
 					HandWeight:        int32(h.calculateHandWeight()),
-					CombinationWeight: 5,
+					CombinationWeight: straightCombinationWeight,
 				}
 			}
 		} else {
@@ -245,7 +288,7 @@ func (h *Hand) isThreeOfAKind() *HandResult {
 				HandName:          h.Name,
 				CombinationName:   "Three of a kind",
 				HandWeight:        int32(h.calculateHandWeight()),
-				CombinationWeight: 4,
+				CombinationWeight: threeOfAKindCombinationWeight,
 			}
 		}
 	}
@@ -269,7 +312,7 @@ func (h *Hand) isTwoPair() *HandResult {
 			HandName:          h.Name,
 			CombinationName:   "Two pair",
 			HandWeight:        int32(h.calculateHandWeight()),
-			CombinationWeight: 3,
+			CombinationWeight: twoPairCombinationWeight,
 		}
 	}
 	return nil
@@ -288,7 +331,7 @@ func (h *Hand) isPair() *HandResult {
 				HandName:          h.Name,
 				CombinationName:   "Pair",
 				HandWeight:        int32(h.calculateHandWeight()),
-				CombinationWeight: 2,
+				CombinationWeight: pairCombinationWeight,
 			}
 		}
 	}
@@ -308,7 +351,7 @@ func (h *Hand) isHighCard() *HandResult {
 			HandName:          h.Name,
 			CombinationName:   "High card",
 			HandWeight:        int32(h.calculateHandWeight()),
-			CombinationWeight: 1,
+			CombinationWeight: highCardCombinationWeight,
 		}
 	}
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	pokererr "github.com/devandreyl/go-poker-hands-evaluator/pkg/error"
 	"log"
 	"net/http"
@@ -13,37 +14,40 @@ type errorResponse struct {
 	Error error `json:"error"`
 }
 
-func write(w http.ResponseWriter, status int, resp any) {
+func writeJson(w http.ResponseWriter, status int, resp any) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		log.Panic(err)
 	}
 }
 
-func writeErr(w http.ResponseWriter, err error) {
+func writeJsonErr(w http.ResponseWriter, err error) {
 
-	if conv, ok := err.(validator.ValidationErrors); ok {
+	var validationErrors validator.ValidationErrors
+	if errors.As(err, &validationErrors) {
 		data := make(pokererr.Data)
-		for _, v := range conv {
+		for _, v := range validationErrors {
 			data[v.StructField()] = v.Error()
 		}
 
-		write(w, http.StatusBadRequest, errorResponse{
+		writeJson(w, http.StatusBadRequest, errorResponse{
 			Error: pokererr.NewError(pokererr.CodeValidationError, data),
 		})
 
 		return
 	}
 
-	if conv, ok := err.(*pokererr.Error); ok {
-		write(w, http.StatusInternalServerError, errorResponse{
-			Error: conv,
+	var pokerError *pokererr.Error
+	if errors.As(err, &pokerError) {
+		writeJson(w, http.StatusInternalServerError, errorResponse{
+			Error: pokerError,
 		})
 
 		return
 	}
 
-	write(w, http.StatusInternalServerError, errorResponse{
+	writeJson(w, http.StatusInternalServerError, errorResponse{
 		Error: pokererr.Wrap(err, pokererr.CodeUnknown, nil),
 	})
 }
