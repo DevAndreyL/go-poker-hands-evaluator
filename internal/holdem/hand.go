@@ -31,6 +31,10 @@ type Hand struct {
 	Cards []Card
 }
 
+// DefineCombination Complexity: O(1) (constant time)
+// This method has constant time complexity because it calls individual methods for each possible hand combination,
+// but it's not dependent on the size of the input (number of cards).
+// Each of the individual methods either returns a result or nil, so the overall complexity is constant.
 func (h *Hand) DefineCombination() *HandResult {
 	if royalFlushResult := h.isRoyalFlush(); royalFlushResult != nil {
 		return royalFlushResult
@@ -71,6 +75,9 @@ func (h *Hand) DefineCombination() *HandResult {
 	return h.isHighCard()
 }
 
+// calculateHandWeight Complexity: O(n) (linear time)
+// This method iterates through all the cards in the hand and sums their weights.
+// The time complexity is linear, proportional to the number of cards in the hand.
 func (h *Hand) calculateHandWeight() CardWeight {
 	var totalWeight CardWeight
 	for _, card := range h.Cards {
@@ -79,6 +86,9 @@ func (h *Hand) calculateHandWeight() CardWeight {
 	return totalWeight
 }
 
+// isRoyalFlush Complexity: O(n) (linear time)
+// This method checks whether the cards have the same suit and whether their names match the royal flush combination.
+// It iterates through all the cards in the hand to perform these checks.
 func (h *Hand) isRoyalFlush() *HandResult {
 	firstSuit := h.Cards[0].Suit
 	allCardsSame := true
@@ -108,6 +118,11 @@ func (h *Hand) isRoyalFlush() *HandResult {
 	}
 }
 
+// isStraightFlush Complexity: O(n log n) (linearithmic time)
+// The method involves sorting cards by weight before checking for a straight flush.
+// Sorting takes O(n log n) time in the worst case, and then the method iterates through the sorted cards, which is linear.
+// Possible optimization: Can avoid sorting the potential suit cards if the last card in the sequence is not an Ace.
+// This is because a straight flush can't be formed in this case, given that the Ace can't be the lower card in a sequence.
 func (h *Hand) isStraightFlush() *HandResult {
 	suitCount := make(map[CardSuit]int)
 
@@ -158,6 +173,9 @@ func (h *Hand) isStraightFlush() *HandResult {
 	return nil
 }
 
+// isFullHouse Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isFullHouse() *HandResult {
 	rankCount := make(map[CardName]int)
 	for _, card := range h.Cards {
@@ -187,6 +205,9 @@ func (h *Hand) isFullHouse() *HandResult {
 	return nil
 }
 
+// isFourOfAKind Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isFourOfAKind() *HandResult {
 	rankCount := make(map[CardName]int)
 	for _, card := range h.Cards {
@@ -205,6 +226,9 @@ func (h *Hand) isFourOfAKind() *HandResult {
 	return nil
 }
 
+// isFlush Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isFlush() *HandResult {
 	suitCount := make(map[CardSuit]int)
 	maxRank := CardName("2")
@@ -240,6 +264,9 @@ func (h *Hand) isFlush() *HandResult {
 	return nil
 }
 
+// isStraight Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isStraight() *HandResult {
 	rankCount := make(map[CardName]int)
 	uniqueRanks := make(map[CardName]bool)
@@ -275,6 +302,9 @@ func (h *Hand) isStraight() *HandResult {
 	return nil
 }
 
+// isThreeOfAKind Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isThreeOfAKind() *HandResult {
 	rankCount := make(map[CardName]int)
 
@@ -296,6 +326,9 @@ func (h *Hand) isThreeOfAKind() *HandResult {
 	return nil
 }
 
+// isTwoPair Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isTwoPair() *HandResult {
 	rankCount := make(map[CardName]int)
 	pairCount := 0
@@ -318,6 +351,9 @@ func (h *Hand) isTwoPair() *HandResult {
 	return nil
 }
 
+// isPair Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isPair() *HandResult {
 	rankCount := make(map[CardName]int)
 
@@ -339,6 +375,9 @@ func (h *Hand) isPair() *HandResult {
 	return nil
 }
 
+// isHighCard Complexity: O(n) (linear time)
+// Method iterate through the cards in the hand to count occurrences, check for specific patterns, or identify the combination type.
+// Time complexity is linear.
 func (h *Hand) isHighCard() *HandResult {
 	rankCount := make(map[CardName]int)
 

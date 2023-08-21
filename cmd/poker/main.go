@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/devandreyl/go-poker-hands-evaluator/cmd/poker/handler"
 	"github.com/go-playground/validator/v10"
+	"github.com/rs/cors"
 	"log"
 	"net/http"
 	"os/signal"
@@ -24,7 +25,16 @@ func main() {
 	evaluateHandler := handler.NewEvaluateHandler(router, validator.New())
 	evaluateHandler.Register()
 
-	server := CreateHTTPServer(config, router)
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"Content-Type"},
+		AllowCredentials: true,
+	})
+
+	routerWithCORS := corsMiddleware.Handler(router)
+
+	server := CreateHTTPServer(config, routerWithCORS)
 
 	run(ctx, stop, server)
 }

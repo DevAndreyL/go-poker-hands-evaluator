@@ -27,7 +27,7 @@ func NewEvaluateHandler(router *mux.Router, validate *validator.Validate) Evalua
 
 func (h *EvaluateHandHandler) Register() {
 	h.router.HandleFunc("/evaluate-hand", h.evaluateHand).
-		Methods(http.MethodPost)
+		Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (h *EvaluateHandHandler) evaluateHand(w http.ResponseWriter, r *http.Request) {
